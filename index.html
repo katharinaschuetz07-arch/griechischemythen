@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Griechische Mythologie Lern-App | Premium</title>
+<style>
+body{background:black;color:white;font-family:Arial,sans-serif;margin:0;text-align:center;}
+header{padding:10px;border-bottom:2px solid #87CEEB;}
+header h3{margin:2px 0;letter-spacing:1px;}
+header .version{font-size:12px;color:#aaa;}
+.container{padding:10px; max-width: 600px; margin: auto;}
+.menu{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;}
+.button{background:black;color:white;border:2px solid #87CEEB;border-radius:25px;padding:10px;font-size:11px;cursor:pointer;transition:0.3s;font-weight:bold;text-transform:uppercase;}
+.button:hover{background:#87CEEB;color:black;}
+.row{display:flex;gap:8px;margin-top:8px;}
+.row .button{flex:1;}
+.card{border:2px solid #87CEEB;border-radius:20px;padding:20px;min-height:300px;margin-bottom:10px;position:relative;text-align:left;background:#050505;cursor:pointer;user-select:none;transition: background-color 0.3s;}
+.category{position:absolute;top:10px;left:15px;font-size:11px;color:#87CEEB;text-transform:uppercase;font-weight:bold;}
+.king{position:absolute;top:10px;right:15px;font-size:11px;font-style:italic;}
+.title{text-align:center;font-size:18px;margin-top:30px;margin-bottom:5px;min-height:45px;display:flex;align-items:center;justify-content:center;}
+.progress-container {width: 100%; background: #222; height: 4px; border-radius: 2px; margin-bottom: 15px;}
+.progress-bar {width: 0%; height: 100%; background: #87CEEB; border-radius: 2px; transition: width 0.4s ease;}
+.counter{position:absolute;bottom:10px;right:15px;font-size:11px;color:#666;}
+.content{font-size:18px;line-height:1.5;overflow-y:auto;max-height:180px;padding-right:5px;}
+footer{margin-top:10px;padding:10px;border-top:2px solid #87CEEB;font-size:11px;color:#888;}
+.correct-flash { background-color: #004400 !important; border-color: #00ff00 !important; }
+.wrong-flash { background-color: #440000 !important; border-color: #ff0000 !important; }
+.quiz-option { text-transform: none; font-size: 16px; margin-bottom: 8px; text-align: center; padding-left: 15px;}
+</style>
+</head>
+<body>
+
+<header>
+<h3>GRIECHISCHE MYTHOLOGIE</h3>
+<div class="version">Version 1.1.7 | Premium Edition</div>
+</header>
+
+<div class="container">
+<div class="menu" id="main-menu">
+<button class="button" onclick="loadCategory('olympier')">Olympier</button>
+<button class="button" onclick="loadCategory('titanen')">Titanen</button>
+<button class="button" onclick="loadCategory('heroen')">Heroen</button>
+<button class="button" onclick="loadCategory('wesen')">Fabelwesen</button>
+<button class="button" onclick="loadCategory('orte')">Orte</button>
+<button class="button" onclick="loadCategory('geschichte')">Geschichte</button>
+</div>
+
+<div class="card" id="card" onclick="nextCard()">
+<div class="category" id="card-category">WILLKOMMEN</div>
+<div class="king" id="card-king">INFO</div>
+<div class="title" id="card-title">Bereit zum Lernen?</div>
+<div class="progress-container" id="progress-cont"><div class="progress-bar" id="progress-bar"></div></div>
+<div class="content" id="card-content">Wähle eine Rubrik oben oder starte das Quiz unten. Jede Kategorie enthält 25 Karten.</div>
+<div class="counter" id="card-counter">Start</div>
+</div>
+
+<div class="row">
+<button class="button" onclick="event.stopPropagation(); prevCard()">◀</button>
+<button class="button" onclick="event.stopPropagation(); speak()">🔊</button>
+<button class="button" onclick="event.stopPropagation(); nextCard()">▶</button>
+</div>
+
+<div class="row">
+<button class="button" onclick="goStart()">Menü</button>
+<button class="button" onclick="startQuiz()">Quiz (20)</button>
+<button class="button" onclick="loadCategory('nebenfiguren')">Nebenfiguren</button>
+</div>
+</div>
+
+<footer>&copy; 2026 Griechische Mythologie Lern-App</footer>
+
+<script>
+const data = {
+    olympier: [
+        {title:"Zeus",king:"Göttervater",text:"Herrscher des Olymps, Gott des Himmels und des Wetters. Symbole: Blitzbündel, Adler, Eiche."},
+        {title:"Hera",king:"Königin",text:"Göttin der Ehe, Frauen und Geburt. Beschützerin des Familienlebens. Symbole: Pfau, Diadem."},
+        {title:"Poseidon",king:"Meeresgott",text:"Gott des Meeres, der Erdbeben und Pferde. Bruder des Zeus. Symbol: Dreizack."},
+        {title:"Demeter",king:"Fruchtbarkeit",text:"Göttin des Ackerbaus, des Getreides und der Ernte. Mutter der Persephone. Symbol: Ähre."},
+        {title:"Athena",king:"Weisheit",text:"Göttin der strategischen Kriegsführung, der Kunst und Handarbeit. Symbol: Eule, Ölbaum."},
+        {title:"Apollo",king:"Licht & Musik",text:"Gott der Sonne, der Heilkunst und Prophezeiung. Anführer der Musen. Symbol: Leier, Lorbeer."},
+        {title:"Artemis",king:"Jagd",text:"Göttin der Jagd, des Mondes und der Jungfräulichkeit. Zwillingsschwester Apollos. Symbol: Pfeil & Bogen."},
+        {title:"Ares",king:"Krieg",text:"Gott des grausamen Krieges und des Gemetzels. Sohn von Zeus und Hera. Symbol: Speer, Helm."},
+        {title:"Aphrodite",king:"Liebe",text:"Göttin der Liebe, Schönheit und Begierde. Geboren aus dem Meerschaum. Symbol: Taube, Rose."},
+        {title:"Hephaistos",king:"Schmiedekunst",text:"Gott des Feuers und der Schmiede. Er fertigt die Waffen der Götter. Symbol: Hammer, Amboss."},
+        {title:"Hermes",king:"Götterbote",text:"Schutzgott der Kaufleute, Diebe und Reisenden. Begleiter der Seelen. Symbol: Stab (Caduceus)."},
+        {title:"Dionysos",king:"Wein & Ekstase",text:"Gott des Weines, des Theaters und der Fruchtbarkeit. Spätester Olympier. Symbol: Thyrsosstab."},
+        {title:"Hestia",king:"Herdfeuer",text:"Göttin des häuslichen Herdes und des Friedens. Gab ihren Platz für Dionysos auf."},
+        {title:"Persephone",king:"Unterwelt",text:"Tochter Demeters und Frau des Hades. Verbringt ein Drittel des Jahres in der Unterwelt."},
+        {title:"Hades",king:"Totenreich",text:"Gott der Unterwelt und der Reichtümer der Erde. Zählt oft nicht zu den 12 Olympiern."},
+        {title:"Iris",king:"Regenbogen",text:"Botin der Götter (neben Hermes), personifiziert den Regenbogen."},
+        {title:"Hebe",king:"Jugend",text:"Tochter von Zeus und Hera. Schenkte den Göttern Nektar ein, bis Ganymed übernahm."},
+        {title:"Helios",king:"Sonne",text:"Sonnengott, der täglich mit dem Sonnenwagen über den Himmel fährt."},
+        {title:"Selene",king:"Mond",text:"Göttin des Mondes. Schwester von Helios und Eos (Morgenröte)."},
+        {title:"Eros",king:"Begehren",text:"Gott der Liebe. Oft als Sohn der Aphrodite dargestellt. Schießt Gold- und Bleipfeile."},
+        {title:"Pan",king:"Hirtengott",text:"Gott des Waldes und der Hirten. Halbgott mit Ziegenbeinen. Erfinder der Panflöte."},
+        {title:"Nike",king:"Sieg",text:"Geflügelte Siegesgöttin, oft Begleiterin von Athena oder Zeus."},
+        {title:"Themis",king:"Gerechtigkeit",text:"Göttin der göttlichen Ordnung und Gerechtigkeit. Trägt oft eine Waagschale."},
+        {title:"Tyche",king:"Schicksal",text:"Göttin des glücklichen Zufalls und des Schicksals. Trägt das Füllhorn."},
+        {title:"Nemesis",king:"Vergeltung",text:"Göttin des gerechten Zorns und der Vergeltung für menschliche Überheblichkeit."}
+    ],
+    titanen: [
+        {title:"Kronos",king:"Zeit",text:"Jüngster Sohn von Uranos und Gaia. Er stürzte seinen Vater und fraß seine eigenen Kinder."},
+        {title:"Rhea",king:"Mutter",text:"Frau des Kronos und Mutter der ersten sechs Olympier. Sie rettete Zeus vor dem Verschlingen."},
+        {title:"Uranos",king:"Himmel",text:"Urgott des Himmels, erster Herrscher. Vater der Titanen, Kyklopen und Hekatoncheiren."},
+        {title:"Gaia",king:"Erde",text:"Die personifizierte Erde, Mutter aller Götter und Urwesen."},
+        {title:"Okeanos",king:"Weltstrom",text:"Beherrscher des gewaltigen Stroms, der die gesamte Erdscheibe umfließt."},
+        {title:"Tethys",king:"Meeresgöttin",text:"Frau des Okeanos, Mutter aller Flussgötter und Ozeaniden."},
+        {title:"Hyperion",king:"Licht",text:"Titan des Lichts und des Himmelsfeuers. Vater von Helios, Selene und Eos."},
+        {title:"Theia",king:"Glanz",text:"Titanin des Sehens und des strahlenden Himmelslichts. Gattin des Hyperion."},
+        {title:"Koios",king:"Verstand",text:"Titan des Intellekts und der Achse des Himmels. Vater von Leto."},
+        {title:"Phoibe",king:"Weissagung",text:"Titanin des Mondes und der Prophezeiung. Großmutter von Apollo und Artemis."},
+        {title:"Iapetos",king:"Sterblichkeit",text:"Titan des Westens und Vater von Prometheus, Atlas und Epimetheus."},
+        {title:"Mnemosyne",king:"Erinnerung",text:"Göttin des Gedächtnisses und Mutter der neun Musen (mit Zeus)."},
+        {title:"Themis",king:"Ordnung",text:"Titanin der Gerechtigkeit, die auch im Olymp hochgeachtet blieb."},
+        {title:"Atlas",king:"Last",text:"Sohn des Iapetos. Muss nach der Niederlage der Titanen das Himmelsgewölbe tragen."},
+        {title:"Prometheus",king:"Vorausblick",text:"Schöpfer der Menschen, stahl das Feuer vom Olymp. Wurde im Kaukasus angekettet."},
+        {title:"Epimetheus",king:"Nachher",text:"Bruder von Prometheus. Er nahm Pandora zur Frau, trotz aller Warnungen."},
+        {title:"Leto",king:"Mutterschaft",text:"Tochter des Koios. Mutter von Apollo und Artemis, verfolgt von Heras Zorn."},
+        {title:"Metis",king:"Klugheit",text:"Erste Geliebte des Zeus. Er verschlang sie, woraufhin Athena aus seinem Kopf geboren wurde."},
+        {title:"Krios",king:"Süden",text:"Titan des Südens und der Sternbilder. Vater von Pallas und Astraios."},
+        {title:"Pallas",king:"Kampf",text:"Titan des Kriegshandwerks. Vater von Nike (Sieg) und Bia (Gewalt)."},
+        {title:"Asteria",king:"Sterne",text:"Titanin der Astrologie. Sie verwandelte sich in eine Wachtel, um Zeus zu entfliehen."},
+        {title:"Hekate",king:"Magie",text:"Titanin der Zauberkunst und Kreuzwege. Eine der wenigen, die ihre Macht unter Zeus behielten."},
+        {title:"Eos",king:"Morgenröte",text:"Tochter von Hyperion. Sie bringt den Göttern und Menschen das Licht."},
+        {title:"Dione",king:"Orakel",text:"Wird oft als Titanin und Mutter der Aphrodite (in einigen Mythen) bezeichnet."},
+        {title:"Styx",king:"Hass",text:"Titanin des Unterweltflusses. Sie half Zeus im Krieg und wurde zum heiligsten Eid."}
+    ],
+    heroen: [
+        {title:"Herakles",king:"Stärke",text:"Bekanntester Halbgott. Erledigte die 12 Arbeiten (z.B. Nemeischer Löwe, Lernäische Hydra)."},
+        {title:"Achilleus",king:"Troja",text:"Fast unverwundbarer Held. Sein Zorn ist das Hauptthema der Ilias. Starb durch Pfeilschuss in die Ferse."},
+        {title:"Odysseus",king:"List",text:"König von Ithaka. Erfinder des Trojanischen Pferdes. Brauchte 10 Jahre für die Heimkehr."},
+        {title:"Theseus",king:"Athen",text:"Bezwinger des Minotauros im Labyrinth von Kreta dank Ariadnes Faden."},
+        {title:"Perseus",king:"Medusa",text:"Sohn des Zeus. Enthauptete die Gorgone Medusa und rettete Andromeda vor einem Seeungeheuer."},
+        {title:"Jason",king:"Argonauten",text:"Anführer der Argonauten auf der Suche nach dem Goldenen Vlies in Kolchis."},
+        {title:"Bellerophon",king:"Pegasus",text:"Zähmte das Flügelpferd Pegasus und tötete die Chimära aus der Luft."},
+        {title:"Oidipus",king:"Theben",text:"Löste das Rätsel der Sphinx, tötete unwissend seinen Vater und heiratete seine Mutter."},
+        {title:"Hektor",king:"Troja",text:"Prinz von Troja, edelster Verteidiger der Stadt. Getötet von Achilleus."},
+        {title:"Paris",king:"Raub",text:"Prinz von Troja, entführte Helena aus Sparta und löste damit den Krieg aus."},
+        {title:"Menelaos",king:"Sparta",text:"König von Sparta und betrogener Ehemann der Helena. Bruder von Agamemnon."},
+        {title:"Agamemnon",king:"Anführer",text:"Oberbefehlshaber der Griechen vor Troja. Wurde nach der Rückkehr von seiner Frau ermordet."},
+        {title:"Aias (Ajax)",king:"Kraft",text:"Zweitstärkster Grieche nach Achilleus. Verfiel dem Wahnsinn, als er Achills Rüstung nicht erhielt."},
+        {title:"Diomedes",king:"Tapferkeit",text:"Griechischer Held, der im Trojanischen Krieg sogar Götter (Ares, Aphrodite) verwundete."},
+        {title:"Patroklos",king:"Freundschaft",text:"Engster Gefährte des Achilleus. Sein Tod trieb Achilleus zurück in die Schlacht."},
+        {title:"Atalante",king:"Jägerin",text:"Schnellste Läuferin. Sie nahm an der Kalydonischen Eberjagd teil."},
+        {title:"Meleagros",king:"Eberjagd",text:"Held der Jagd auf den Kalydonischen Eber. Starb, als seine Mutter ein Holzscheit verbrannte."},
+        {title:"Orpheus",king:"Musik",text:"Sänger, der sogar Steine zum Weinen brachte. Versuchte vergeblich, Eurydike aus dem Hades zu retten."},
+        {title:"Peleus",king:"Vater",text:"Vater des Achilleus. Seine Hochzeit mit Thetis war der indirekte Auslöser des Trojanischen Krieges."},
+        {title:"Daidalos",king:"Erfinder",text:"Baute das Labyrinth und Flügel aus Federn und Wachs für sich und seinen Sohn Ikarus."},
+        {title:"Ikarus",king:"Flug",text:"Flog zu nah an die Sonne. Das Wachs seiner Flügel schmolz und er stürzte ins Meer."},
+        {title:"Sisyphos",king:"Strafe",text:"Listiger König, der den Tod fesselte. Muss nun ewig einen Stein den Berg hochrollen."},
+        {title:"Tantalos",king:"Frevel",text:"Servierte den Göttern seinen Sohn. Leidet ewigen Hunger und Durst im Tartaros."},
+        {title:"Kadmos",king:"Drache",text:"Gründer von Theben. Er säte Drachenzähne aus, aus denen Krieger (Sparten) wuchsen."},
+        {title:"Aineias",king:"Rom",text:"Sohn der Aphrodite. Entkam aus Troja und wurde zum Stammvater der Römer."}
+    ],
+    wesen: [
+        {title:"Medusa",king:"Gorgone",text:"Frau mit Schlangenhaaren. Wer sie ansieht, erstarrt zu Stein. Getötet von Perseus."},
+        {title:"Pegasus",king:"Flügelpferd",text:"Entsprang dem Hals der Medusa, als sie starb. Begleiter von Bellerophon."},
+        {title:"Kerberos",king:"Höllenhund",text:"Dreiköpfiger Hund, der den Eingang zum Hades bewacht und niemanden hinauslässt."},
+        {title:"Minotauros",king:"Stiermensch",text:"Halb Stier, halb Mensch. Lebte im Labyrinth auf Kreta und fraß Menschenopfer."},
+        {title:"Chiron",king:"Zentaur",text:"Halb Pferd, halb Mensch. Im Gegensatz zu anderen Zentauren war er weise und ein Lehrer der Helden."},
+        {title:"Sphinx",king:"Rätsel",text:"Löwenkörper mit Frauenkopf und Flügeln. Würgte jeden, der ihr Rätsel nicht lösen konnte."},
+        {title:"Chimära",king:"Mischwesen",text:"Speit Feuer. Besteht aus Löwe (vorne), Ziege (Mitte) und Schlange (Schwanz)."},
+        {title:"Hydra",king:"Vielköpfig",text:"Wasserschlange aus Lerna. Für jeden abgeschlagenen Kopf wuchsen zwei neue nach."},
+        {title:"Satyren",king:"Naturgeister",text:"Wesen mit Ziegenfüßen und Hörnern. Begleiter des Dionysos, bekannt für Weinlust."},
+        {title:"Sirenen",king:"Vogelvögel",text:"Lockten Seeleute mit ihrem unwiderstehlichen Gesang in den Tod gegen die Klippen."},
+        {title:"Kyklopen",king:"Einäugig",text:"Riesen mit nur einem Auge auf der Stirn. Berühmt ist Polyphem aus der Odyssee."},
+        {title:"Harpien",king:"Sturmwinde",text:"Vögel mit Frauengesichtern. Sie gelten als Diebinnen und Botinnen des Verderbens."},
+        {title:"Skylla",king:"Seeungeheuer",text:"Sechsköpfiges Monster, das in einer Höhle gegenüber der Charybdis hauste."},
+        {title:"Charybdis",king:"Strudel",text:"Ein gewaltiger Meeresstrudel, der ganze Schiffe verschlang und wieder spie."},
+        {title:"Phönix",king:"Wiedergeburt",text:"Sagenhafter Vogel, der am Ende seines Lebens verbrennt und aus der Asche neu entsteht."},
+        {title:"Erinnyen",king:"Rache",text:"Drei Rachegöttinnen (Furien), die Blutschuld und Verbrechen gegen die Ordnung bestrafen."},
+        {title:"Nymphen",king:"Natur",text:"Weibliche Geister der Natur (Dryaden im Baum, Naiaden im Wasser, Oreaden im Berg)."},
+        {title:"Grazien",king:"Anmut",text:"Drei Schwestern, die Schönheit, Anmut und Freude verkörpern."},
+        {title:"Musen",king:"Künste",text:"Neun Töchter des Zeus, die jeweils einer Kunst oder Wissenschaft vorstehen."},
+        {title:"Gorgonen",king:"Drei",text:"Stheno, Euryale und Medusa. Nur Medusa war sterblich."},
+        {title:"Greif",king:"Wächter",text:"Löwenkörper mit Adlerkopf und Flügeln. Bewachen oft Schätze oder Gold."},
+        {title:"Python",king:"Drache",text:"Riesige Schlange, die das Orakel von Delphi bewachte, bis Apollo sie tötete."},
+        {title:"Ladón",king:"Wächter",text:"Hundertköpfiger Drache, der die goldenen Äpfel der Hesperiden bewachte."},
+        {title:"Hekatoncheiren",king:"Riesen",text:"Drei Riesen mit 50 Köpfen und 100 Armen. Söhne des Uranos."},
+        {title:"Echidna",king:"Mutter",text:"Halb Frau, halb Schlange. Gilt als Mutter fast aller bekannten Monster Griechenlands."}
+    ],
+    orte: [
+        {title:"Olymp",king:"Gipfel",text:"Der höchste Berg Griechenlands. Sitz der 12 Hauptgötter in prächtigen Palästen."},
+        {title:"Delphi",king:"Zentrum",text:"Das Orakel am Parnassos-Berg. Galt als der 'Nabel der Welt' (Omphalos)."},
+        {title:"Hades",king:"Unterwelt",text:"Das Schattenreich, benannt nach seinem Herrscher. Hier landen alle Seelen."},
+        {title:"Tartaros",king:"Abgrund",text:"Der tiefste Teil der Unterwelt, Gefängnis für Titanen und schlimmste Frevler."},
+        {title:"Elysion",king:"Paradies",text:"Insel der Seligen. Hier verbringen die tugendhaftesten Helden ihre Ewigkeit."},
+        {title:"Styx",king:"Grenzfluss",text:"Fluss des Hasses, der die Welt der Lebenden von der Unterwelt trennt."},
+        {title:"Labyrinth",king:"Knossos",text:"Verschlungener Irrgarten auf Kreta, erbaut für den Minotauros."},
+        {title:"Troja",king:"Ilion",text:"Stadt in Kleinasien, Schauplatz des berühmten Trojanischen Krieges."},
+        {title:"Ithaka",king:"Heimat",text:"Inselreich des Odysseus im Ionischen Meer."},
+        {title:"Knossos",king:"Palast",text:"Hauptstadt von König Minos auf Kreta, Zentrum der minoischen Kultur."},
+        {title:"Mykene",king:"Festung",text:"Stadt des Agamemnon, bekannt für das Löwentor und ihre Goldfunde."},
+        {title:"Athen",king:"Polis",text:"Zentrum der Weisheit, benannt nach der Siegerin des Wettstreits mit Poseidon."},
+        {title:"Sparta",king:"Lakedaimon",text:"Kriegerstaat auf dem Peloponnes, Heimat des Menelaos und Leonidas."},
+        {title:"Theben",king:"Gründung",text:"Stadt mit den sieben Toren, Ort der Oidipus-Tragödie."},
+        {title:"Acheron",king:"Fluss",text:"Fluss des Leidens in der Unterwelt, den die Seelen mit Charon überqueren."},
+        {title:"Lethe",king:"Vergessen",text:"Unterweltfluss. Wer daraus trinkt, vergisst sein irdisches Leben vollständig."},
+        {title:"Ida-Gebirge",king:"Kreta",text:"Versteck des jungen Zeus vor seinem Vater Kronos."},
+        {title:"Delos",king:"Geburt",text:"Heilige Insel, auf der Leto Apollo und Artemis zur Welt brachte."},
+        {title:"Daudona",king:"Orakel",text:"Ältestes Orakel Griechenlands, wo der Wille des Zeus durch das Rauschen der Eichen verkündet wurde."},
+        {title:"Kaukasus",king:"Fels",text:"Gebirge, an das Prometheus zur Strafe für den Feuerraub gekettet wurde."},
+        {title:"Kolchis",king:"Schwarzmeer",text:"Reich am östlichen Ende der Welt, Heimat des Goldenen Vlieses."},
+        {title:"Zwillingsfelsen",king:"Symplegaden",text:"Felsen am Bosporus, die jedes Schiff zermalmten, bis die Argonauten sie passierten."},
+        {title:"Aulis",king:"Hafen",text:"Sammelpunkt der griechischen Flotte vor der Abfahrt nach Troja."},
+        {title:"Erytheia",king:"Rote Insel",text:"Ferner Westen, wo Herakles die Rinder des Geryon stehlen musste."},
+        {title:"Asphodeloswiesen",king:"Unterwelt",text:"Ort für jene Seelen, die weder besonders gut noch besonders böse waren."}
+    ],
+    geschichte: [
+        {title:"Chaos",king:"Urbeginn",text:"Zustand vor der Schöpfung. Daraus entstanden Gaia, Tartaros, Eros, Erebos und Nyx."},
+        {title:"Entmannung des Uranos",king:"Sturz",text:"Kronos entmannte seinen Vater Uranos mit einer Sichel und übernahm die Macht."},
+        {title:"Titanomachie",king:"Krieg",text:"Zehnjähriger Krieg zwischen Titanen und Olympiern. Zeus siegte dank Blitzen."},
+        {title:"Gigantomachie",king:"Riesenkampf",text:"Die Giganten griffen den Olymp an. Die Götter siegten nur mit Hilfe des Herakles."},
+        {title:"Das Goldene Zeitalter",king:"Glück",text:"Herrschaft des Kronos. Menschen lebten ohne Arbeit und Sorge wie Götter."},
+        {title:"Das Silberne Zeitalter",king:"Verfall",text:"Menschen waren kindisch und ehrten die Götter nicht. Zeus vernichtete sie."},
+        {title:"Das Eherne Zeitalter",king:"Gewalt",text:"Zeit der Kriege und harten Waffen. Die Menschen vernichteten sich selbst."},
+        {title:"Das Heldenzeitalter",king:"Mythos",text:"Einzige Ära, die besser als die vorherige war. Zeit der großen Sagen (Troja)."},
+        {title:"Das Eiserne Zeitalter",king:"Gegenwart",text:"Mühsal, Leid und Ungerechtigkeit. Die heutige Zeit der Menschen."},
+        {title:"Raub der Persephone",king:"Jahreszeiten",text:"Hades entführte sie. Demeters Trauer ließ alles verdorren (Winter)."},
+        {title:"Sintflut (Deukalion)",king:"Neubeginn",text:"Zeus flutete die Erde. Nur Deukalion und Pyrrha überlebten in einer Arche."},
+        {title:"Urteil des Paris",king:"Auslöser",text:"Paris wählte Aphrodite als Schönste. Als Lohn bekam er Helena - Start Troja."},
+        {title:"Zehn Jahre Troja",king:"Krieg",text:"Belagerung Trojas durch die Griechen unter Agamemnon."},
+        {title:"Das Trojanische Pferd",king:"List",text:"Das hölzerne Versteck, das den Griechen den Einzug in die Stadt ermöglichte."},
+        {title:"Heimkehr (Nostoi)",king:"Irrfahrten",text:"Die schwierige Rückreise der griechischen Helden nach dem Krieg (z.B. Odyssee)."},
+        {title:"Zerstörung von Mykene",king:"Ende",text:"Historischer Untergang der mykenischen Kultur um 1200 v.Chr."},
+        {title:"Dunkle Jahrhunderte",king:"Übergang",text:"Zeit ohne Schriftquellen zwischen Mykene und der archaischen Zeit."},
+        {title:"Homerische Epen",king:"800 v.Chr.",text:"Niederschrift der Ilias und Odyssee, Fundament der griechischen Bildung."},
+        {title:"Theogonie",king:"Hesiod",text:"Das Werk Hesiods, das die Entstehung der Götter systematisch ordnet."},
+        {title:"Olympische Spiele",king:"776 v.Chr.",text:"Beginn der Zeitrechnung zu Ehren des Zeus in Olympia."},
+        {title:"Erschaffung Pandoras",king:"Rache",text:"Zeus ließ die erste Frau erschaffen, um den Menschen Unheil zu bringen."},
+        {title:"Feuerraub",king:"Prometheus",text:"Prometheus brachte den Menschen technisches Wissen gegen den Willen des Zeus."},
+        {title:"Titanen im Tartaros",king:"Verbannung",text:"Die Unterwerfung der alten Mächte unter das neue Gesetz des Zeus."},
+        {title:"Die Sieben gegen Theben",king:"Bruderkrieg",text:"Krieg um die Vorherrschaft in Theben nach Oidipus' Sturz."},
+        {title:"Ende des Mythos",king:"Philosophie",text:"Der Übergang vom Mythos zum Logos (Vernunft) im klassischen Griechenland."}
+    ],
+    nebenfiguren: [
+        {title:"Charon",king:"Fährmann",text:"Setzt die Seelen für eine Münze über den Fluss Acheron in die Unterwelt."},
+        {title:"Ganymed",king:"Mundschenk",text:"Schönster Sterblicher, von Zeus als Adler in den Olymp entführt."},
+        {title:"Eileithyia",king:"Geburt",text:"Tochter von Zeus und Hera. Göttin der Geburtshilfe."},
+        {title:"Hymenaios",king:"Hochzeit",text:"Gott der Hochzeitslieder und der feierlichen Eheschließung."},
+        {title:"Thanatos",king:"Tod",text:"Der personifizierte sanfte Tod. Bruder von Hypnos."},
+        {title:"Hypnos",king:"Schlaf",text:"Gott des Schlafes. Er wohnt in einer Höhle, durch die der Fluss Lethe fließt."},
+        {title:"Morpheus",king:"Traum",text:"Sohn des Hypnos. Er kann im Traum jede menschliche Gestalt annehmen."},
+        {title:"Eris",king:"Zwietracht",text:"Göttin des Streits. Sie warf den goldenen Apfel mit der Aufschrift 'Der Schönsten'."},
+        {title:"Nikephoros",king:"Bote",text:"Ein Beiname für jene, die den Sieg verkünden."},
+        {title:"Momos",king:"Spott",text:"Gott des Tadels und der scharfen Kritik. Wurde aus dem Olymp geworfen."},
+        {title:"Ate",king:"Verblendung",text:"Göttin, die Menschen und Götter zu unbesonnenen Taten verleitet."},
+        {title:"Admetos",king:"König",text:"König, für den Apollo als Hirte dienen musste. Sein Leben wurde durch Alkestis gerettet."},
+        {title:"Alkestis",king:"Treue",text:"Opferte ihr Leben für ihren Mann Admetos und wurde von Herakles aus dem Hades zurückgeholt."},
+        {title:"Baukis & Philemon",king:"Gastfreundschaft",text:"Ein altes Ehepaar, das als einzige Zeus und Hermes gastfreundlich aufnahm."},
+        {title:"Daidalos",king:"Handwerk",text:"Vater des Ikarus und genialer Baumeister des kretischen Labyrinths."},
+        {title:"Eurydike",king:"Gattin",text:"Frau des Orpheus. Starb an einem Schlangenbiss am Tag ihrer Hochzeit."},
+        {title:"Hyakinthos",king:"Geliebter",text:"Schöner Jüngling, den Apollo liebte. Aus seinem Blut entstand die Hyazinthe."},
+        {title:"Narziss",king:"Selbstliebe",text:"Verliebte sich in sein eigenes Spiegelbild und verwandelte sich in eine Blume."},
+        {title:"Echo",king:"Nymphe",text:"Konnte nur die letzten Worte anderer wiederholen. Starb aus Kummer über Narziss."},
+        {title:"Pygmalion",king:"Bildhauer",text:"Verliebte sich in eine von ihm geschaffene Statue, die Aphrodite zum Leben erweckte."},
+        {title:"Galateia",king:"Statue",text:"Die zum Leben erweckte Elfenbeinstatue des Pygmalion."},
+        {title:"Midas",king:"Gold",text:"König, dessen Berührung alles in Gold verwandelte. Bekam später Eselsohren."},
+        {title:"Iphigenie",king:"Opfer",text:"Tochter Agamemnons. Sollte geopfert werden, wurde aber von Artemis gerettet."},
+        {title:"Kassandra",king:"Prophetin",text:"Besaß die Gabe der Weissagung, aber niemand glaubte ihren (wahren) Warnungen."},
+        {title:"Circe (Kirke)",king:"Zauberin",text:"Verwandelte die Gefährten des Odysseus in Schweine. Tochter des Helios."}
+    ]
+};
+
+// Quiz mit 20 Fragen
+const quizData = [
+    {q:"Wer ist der Gott des Blitzes?",a:["Hades","Poseidon","Zeus"],c:2},
+    {q:"Wie heißt der Fährmann in der Unterwelt?",a:["Charon","Hermes","Platon"],c:0},
+    {q:"Welche Heldentat vollbrachte Theseus?",a:["Sieg über Hydra","Tötung des Minotauros","Raub des Feuers"],c:1},
+    {q:"Wer ist die Mutter von Apollo und Artemis?",a:["Hera","Leto","Demeter"],c:1},
+    {q:"Welches Tier ist das Symbol von Athena?",a:["Eule","Pfau","Taube"],c:0},
+    {q:"Wer stahl das Feuer für die Menschen?",a:["Ikarus","Atlas","Prometheus"],c:2},
+    {q:"Wie heißt der dreiköpfige Hund des Hades?",a:["Chimära","Kerberos","Orthos"],c:1},
+    {q:"Wer schuf das Labyrinth auf Kreta?",a:["Theseus","Daidalos","Ikarus"],c:1},
+    {q:"Göttin der Liebe und Schönheit?",a:["Hera","Artemis","Aphrodite"],c:2},
+    {q:"Was passierte beim Blick auf Medusa?",a:["Man erblindete","Man erstarrte zu Stein","Man verliebte sich"],c:1},
+    {q:"Wer ist der Gott des Weines?",a:["Ares","Hephaistos","Dionysos"],c:2},
+    {q:"Wie heißt das Flügelpferd?",a:["Pegasus","Bukephalos","Arion"],c:0},
+    {q:"In welchem Fluss badete Achilleus?",a:["Nil","Styx","Lethe"],c:1},
+    {q:"Wer löste das Rätsel der Sphinx?",a:["Herakles","Oidipus","Jason"],c:1},
+    {q:"Wer ist der Götterbote?",a:["Apollo","Hermes","Ares"],c:1},
+    {q:"Welcher Titan trägt das Himmelsgewölbe?",a:["Kronos","Atlas","Okeanos"],c:1},
+    {q:"Wer ist die Frau von Hades?",a:["Persephone","Hestia","Aphrodite"],c:0},
+    {q:"Wie viele Arbeiten musste Herakles verrichten?",a:["7","10","12"],c:2},
+    {q:"Wer ist der Sonnengott?",a:["Helios","Selene","Eos"],c:0},
+    {q:"Was öffnete Pandora?",a:["Eine Tür","Eine Büchse","Einen Brief"],c:1}
+];
+
+let currentCategory='olympier', index=0, quizActive=false;
+
+function loadCategory(cat){
+    quizActive=false; 
+    currentCategory=cat; 
+    index=0; 
+    document.getElementById("progress-cont").style.display = "block";
+    showCard();
+}
+
+function showCard(){
+    let item=data[currentCategory][index];
+    document.getElementById("card-category").innerText=currentCategory.toUpperCase();
+    document.getElementById("card-king").innerText=item.king||"";
+    document.getElementById("card-title").innerText=item.title;
+    document.getElementById("card-content").innerHTML=item.text;
+    document.getElementById("card-counter").innerText=(index+1)+" von "+data[currentCategory].length;
+    let percentage = ((index + 1) / data[currentCategory].length) * 100;
+    document.getElementById("progress-bar").style.width = percentage + "%";
+}
+
+function nextCard(){
+    if(quizActive) return; 
+    index++; 
+    if(index>=data[currentCategory].length) index=0; 
+    showCard();
+}
+
+function prevCard(){
+    if(quizActive) return; 
+    index--; 
+    if(index<0) index=data[currentCategory].length-1; 
+    showCard();
+}
+
+function goStart(){
+    quizActive=false;
+    document.getElementById("card-category").innerText="MENÜ";
+    document.getElementById("card-king").innerText="";
+    document.getElementById("card-title").innerText="Kategorie wählen";
+    document.getElementById("card-content").innerText="Wähle eine Rubrik oben oder starte das Quiz.";
+    document.getElementById("card-counter").innerText="Start";
+    document.getElementById("progress-bar").style.width = "0%";
+}
+
+function speak(){
+    let text=document.getElementById("card-title").innerText+". "+document.getElementById("card-content").innerText;
+    let speech=new SpeechSynthesisUtterance(text);
+    speech.lang="de-DE";
+    window.speechSynthesis.speak(speech);
+}
+
+let qIndex=0, correct=0;
+function startQuiz(){
+    quizActive=true; 
+    qIndex=0; 
+    correct=0; 
+    document.getElementById("progress-cont").style.display="none"; 
+    showQuiz();
+}
+
+function showQuiz(){
+    let q=quizData[qIndex];
+    document.getElementById("card-category").innerText="QUIZ";
+    document.getElementById("card-king").innerText="";
+    document.getElementById("card-title").innerText=q.q;
+    let html="";
+    for(let i=0;i<q.a.length;i++) {
+        html+="<button class='button quiz-option' style='width:100%;' onclick='answer("+i+", event)'>"+q.a[i]+"</button>";
+    }
+    document.getElementById("card-content").innerHTML=html;
+    document.getElementById("card-counter").innerText=(qIndex+1)+" von "+quizData.length;
+}
+
+function answer(i, e){
+    e.stopPropagation();
+    let q = quizData[qIndex];
+    let card = document.getElementById("card");
+    if(i === q.c) {
+        correct++; 
+        card.classList.add("correct-flash");
+    } else {
+        card.classList.add("wrong-flash");
+    }
+    setTimeout(() => {
+        card.classList.remove("correct-flash", "wrong-flash");
+        qIndex++;
+        if(qIndex >= quizData.length){
+            document.getElementById("card-title").innerText = "Ergebnis";
+            document.getElementById("card-content").innerHTML = "Du hast " + correct + " von " + quizData.length + " Fragen richtig beantwortet.<br><br>Gute Arbeit, Halbgott!";
+            quizActive = false;
+        } else {
+            showQuiz();
+        }
+    }, 600);
+}
+</script>
+</body>
+</html>
